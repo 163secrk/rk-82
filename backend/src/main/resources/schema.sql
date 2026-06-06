@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS project (
   budget_min DECIMAL(10,2) NOT NULL,
   budget_max DECIMAL(10,2) NOT NULL,
   deadline DATETIME,
+  requirements TEXT,
   status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
   client_id INTEGER NOT NULL,
   freelancer_id INTEGER,
@@ -103,6 +104,6 @@ INSERT OR IGNORE INTO "user" (email, password, nickname, role, balance) VALUES
 ('freelancer@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试接包方', 'FREELANCER', 0.00);
 
 INSERT OR IGNORE INTO project (title, description, category, budget_min, budget_max, deadline, status, client_id) VALUES 
-('企业官网开发', '需要一个现代化的企业展示官网，包含首页、产品介绍、关于我们、联系我们等页面。要求响应式设计，支持移动端访问。', '网站开发', 5000.00, 8000.00, '2024-12-31', 'PUBLISHED', 1),
-('微信小程序开发', '开发一个电商类微信小程序，包含商品展示、购物车、订单管理、支付等功能。', '小程序开发', 15000.00, 25000.00, '2025-01-31', 'PUBLISHED', 1),
-('UI设计项目', '为一款移动应用提供完整的UI设计服务，包含原型设计、视觉设计、交互设计等。', 'UI设计', 8000.00, 12000.00, '2024-12-15', 'PUBLISHED', 1);
+('企业官网开发', '需要一个现代化的企业展示官网，包含首页、产品介绍、关于我们、联系我们等页面。要求响应式设计，支持移动端访问。', '网站开发', 5000.00, 8000.00, '2024-12-31 23:59:59', 'PUBLISHED', 1),
+('微信小程序开发', '开发一个电商类微信小程序，包含商品展示、购物车、订单管理、支付等功能。', '小程序开发', 15000.00, 25000.00, '2025-01-31 23:59:59', 'PUBLISHED', 1),
+('UI设计项目', '为一款移动应用提供完整的UI设计服务，包含原型设计、视觉设计、交互设计等。', 'UI设计', 8000.00, 12000.00, '2024-12-15 23:59:59', 'PUBLISHED', 1);

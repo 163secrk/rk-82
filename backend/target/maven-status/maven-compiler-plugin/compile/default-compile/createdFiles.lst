@@ -2,6 +2,7 @@ com\freelance\platform\controller\ProjectController.class
 com\freelance\platform\controller\ChatController.class
 com\freelance\platform\dto\request\CreateBidRequest.class
 com\freelance\platform\exception\BusinessException.class
+com\freelance\platform\config\DataInitializer.class
 com\freelance\platform\controller\BidController.class
 com\freelance\platform\repository\ReviewRepository.class
 com\freelance\platform\controller\MessageController.class
@@ -16,6 +17,7 @@ com\freelance\platform\entity\Message.class
 com\freelance\platform\exception\GlobalExceptionHandler.class
 com\freelance\platform\common\enums\PaymentStatus.class
 com\freelance\platform\repository\ProjectRepository.class
+com\freelance\platform\common\LocalDateTimeDeserializer.class
 com\freelance\platform\dto\request\EscrowRequest.class
 com\freelance\platform\config\WebSocketConfig.class
 com\freelance\platform\common\enums\BidStatus.class

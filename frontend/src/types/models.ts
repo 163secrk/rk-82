@@ -30,6 +30,7 @@ export interface Project {
   budgetMin: number;
   budgetMax: number;
   deadline: string;
+  requirements: string;
   status: ProjectStatus;
   clientId: number;
   clientName: string;

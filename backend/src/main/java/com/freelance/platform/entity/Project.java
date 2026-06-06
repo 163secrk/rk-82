@@ -35,6 +35,9 @@ public class Project {
     @Column(name = "deadline")
     private LocalDateTime deadline;
 
+    @Column(columnDefinition = "TEXT")
+    private String requirements;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProjectStatus status = ProjectStatus.DRAFT;

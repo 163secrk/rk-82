@@ -19,6 +19,8 @@ public class ProjectDetailVO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deadline;
 
+    private String requirements;
+
     private ProjectStatus status;
     private Integer clientId;
     private String clientName;
