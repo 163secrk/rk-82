@@ -112,6 +112,11 @@ const isMyMessage = (message: Message) => {
   return message.senderId === authStore.user?.id;
 };
 
+const getAvatarChar = (conv: Message) => {
+  const otherUserId = conv.senderId === authStore.user?.id ? conv.receiverId : conv.senderId;
+  return String(otherUserId).charAt(0);
+};
+
 watch(currentProjectId, (newId) => {
   if (newId) {
     handleSelectConversation(newId);
@@ -119,11 +124,15 @@ watch(currentProjectId, (newId) => {
 });
 
 onMounted(async () => {
-  await fetchConversations();
-  if (currentProjectId.value) {
-    handleSelectConversation(currentProjectId.value);
-  } else if (conversations.value.length > 0) {
-    handleSelectConversation(conversations.value[0].projectId);
+  try {
+    await fetchConversations();
+    if (currentProjectId.value) {
+      handleSelectConversation(currentProjectId.value);
+    } else if (conversations.value.length > 0) {
+      handleSelectConversation(conversations.value[0].projectId);
+    }
+  } catch (e) {
+    console.error('Failed to initialize chat:', e);
   }
 });
 </script>
@@ -159,7 +168,7 @@ onMounted(async () => {
             <div class="flex items-start space-x-3">
               <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                 <span class="text-indigo-600 font-semibold">
-                  {{ (conv.senderId === authStore.user?.id ? conv.receiverId : conv.senderId)?.toString().charAt(0) }}
+                  {{ getAvatarChar(conv) }}
                 </span>
               </div>
               <div class="flex-1 min-w-0">

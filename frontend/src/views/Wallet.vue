@@ -20,16 +20,6 @@ const fetchData = async () => {
   try {
     const data = await getPaymentHistory();
     payments.value = data;
-    if (authStore.user) {
-      const lastPayment = data.find(p => p.status === 'COMPLETED');
-      if (lastPayment && authStore.user) {
-        if (lastPayment.payerId === authStore.user.id) {
-          authStore.user.balance -= lastPayment.amount;
-        } else {
-          authStore.user.balance += lastPayment.amount;
-        }
-      }
-    }
   } catch (error) {
     console.error('Failed to fetch payment history:', error);
   } finally {
@@ -102,22 +92,28 @@ const handleWithdraw = async () => {
   }
 };
 
+const isOutgoingPayment = (payment: Payment) => {
+  if (payment.type === 'DEPOSIT') return false;
+  if (payment.type === 'WITHDRAW') return true;
+  return payment.payerId === authStore.user?.id;
+};
+
 const getPaymentIcon = (payment: Payment) => {
-  if (payment.payerId === authStore.user?.id) {
+  if (isOutgoingPayment(payment)) {
     return ArrowUpRight;
   }
   return ArrowDownLeft;
 };
 
 const getPaymentColor = (payment: Payment) => {
-  if (payment.payerId === authStore.user?.id) {
+  if (isOutgoingPayment(payment)) {
     return 'text-red-500';
   }
   return 'text-green-500';
 };
 
 const getPaymentAmount = (payment: Payment) => {
-  if (payment.payerId === authStore.user?.id) {
+  if (isOutgoingPayment(payment)) {
     return `-${formatMoney(payment.amount)}`;
   }
   return `+${formatMoney(payment.amount)}`;
@@ -194,7 +190,7 @@ onMounted(() => {
             <div
               :class="[
                 'w-10 h-10 rounded-lg flex items-center justify-center',
-                payment.payerId === authStore.user?.id ? 'bg-red-100' : 'bg-green-100'
+                isOutgoingPayment(payment) ? 'bg-red-100' : 'bg-green-100'
               ]"
             >
               <component
