@@ -1,5 +1,7 @@
 package com.freelance.platform.dto.request;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.freelance.platform.common.LocalDateTimeDeserializer;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -23,6 +25,7 @@ public class CreateProjectRequest {
     @NotNull(message = "最高预算不能为空")
     private BigDecimal budgetMax;
 
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime deadline;
 
     private String requirements;

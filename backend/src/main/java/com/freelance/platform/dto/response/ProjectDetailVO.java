@@ -1,5 +1,6 @@
 package com.freelance.platform.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.freelance.platform.common.enums.ProjectStatus;
 import lombok.Data;
 
@@ -14,7 +15,10 @@ public class ProjectDetailVO {
     private String category;
     private BigDecimal budgetMin;
     private BigDecimal budgetMax;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deadline;
+
     private ProjectStatus status;
     private Integer clientId;
     private String clientName;
@@ -23,9 +27,18 @@ public class ProjectDetailVO {
     private String freelancerName;
     private String freelancerAvatar;
     private BigDecimal agreedPrice;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
     private Integer bidCount;
 }

@@ -99,8 +99,8 @@ CREATE INDEX IF NOT EXISTS idx_message_project ON message(project_id);
 CREATE INDEX IF NOT EXISTS idx_message_unread ON message(receiver_id, is_read);
 
 INSERT OR IGNORE INTO "user" (email, password, nickname, role, balance) VALUES 
-('client@test.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '测试发包方', 'CLIENT', 10000.00),
-('freelancer@test.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '测试接包方', 'FREELANCER', 0.00);
+('client@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试发包方', 'CLIENT', 10000.00),
+('freelancer@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试接包方', 'FREELANCER', 0.00);
 
 INSERT OR IGNORE INTO project (title, description, category, budget_min, budget_max, deadline, status, client_id) VALUES 
 ('企业官网开发', '需要一个现代化的企业展示官网，包含首页、产品介绍、关于我们、联系我们等页面。要求响应式设计，支持移动端访问。', '网站开发', 5000.00, 8000.00, '2024-12-31', 'PUBLISHED', 1),

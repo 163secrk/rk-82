@@ -55,7 +55,7 @@ const handleSubmit = async () => {
       category: category.value,
       budgetMin: min,
       budgetMax: max,
-      deadline: deadline.value,
+      deadline: `${deadline.value}T23:59:59`,
       requirements: requirements.value
     });
     router.push(`/projects/${project.id}`);
