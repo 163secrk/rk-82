@@ -15,6 +15,8 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 
     List<Bid> findByProjectIdAndStatus(Integer projectId, BidStatus status);
 
+    List<Bid> findByFreelancerId(Integer freelancerId);
+
     boolean existsByProjectIdAndFreelancerId(Integer projectId, Integer freelancerId);
 
     @Query("SELECT COUNT(b) FROM Bid b WHERE b.freelancerId = :freelancerId AND b.status = 'PENDING'")

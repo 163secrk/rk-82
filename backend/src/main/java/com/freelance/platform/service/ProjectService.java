@@ -55,9 +55,11 @@ public class ProjectService {
 
     public Page<ProjectDetailVO> getProjectList(int page, int size, String status, String category, String keyword) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        ProjectStatus projectStatus = status != null ? ProjectStatus.valueOf(status) : ProjectStatus.PUBLISHED;
+        ProjectStatus projectStatus = status != null && !status.isEmpty() ? ProjectStatus.valueOf(status) : ProjectStatus.PUBLISHED;
+        String filterCategory = (category != null && !category.isEmpty()) ? category : null;
+        String filterKeyword = (keyword != null && !keyword.isEmpty()) ? keyword : null;
 
-        Page<Project> projectPage = projectRepository.findByFilters(projectStatus, category, keyword, pageable);
+        Page<Project> projectPage = projectRepository.findByFilters(projectStatus, filterCategory, filterKeyword, pageable);
         return projectPage.map(this::convertToDetailVO);
     }
 

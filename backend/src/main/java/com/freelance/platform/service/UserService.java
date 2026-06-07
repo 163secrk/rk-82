@@ -1,5 +1,7 @@
 package com.freelance.platform.service;
 
+import com.freelance.platform.common.enums.PaymentStatus;
+import com.freelance.platform.common.enums.PaymentType;
 import com.freelance.platform.common.enums.ProjectStatus;
 import com.freelance.platform.common.enums.UserRole;
 import com.freelance.platform.dto.response.DashboardVO;
@@ -76,14 +78,14 @@ public class UserService {
             vo.setInProgressProjects((int) projectRepository.countByClientIdAndStatus(userId, ProjectStatus.IN_PROGRESS));
             vo.setCompletedProjects((int) projectRepository.countByClientIdAndStatus(userId, ProjectStatus.COMPLETED));
             vo.setPendingBids(0);
-            vo.setTotalSpent(paymentRepository.sumSpentByUserId(userId));
+            vo.setTotalSpent(paymentRepository.sumSpentByUserId(userId, PaymentType.RELEASE, PaymentStatus.COMPLETED));
             vo.setTotalEarnings(BigDecimal.ZERO);
         } else {
             vo.setPublishedProjects(0);
             vo.setInProgressProjects((int) projectRepository.countByFreelancerIdAndStatus(userId, ProjectStatus.IN_PROGRESS));
             vo.setCompletedProjects((int) projectRepository.countByFreelancerIdAndStatus(userId, ProjectStatus.COMPLETED));
             vo.setPendingBids((int) bidRepository.countPendingBidsByFreelancerId(userId));
-            vo.setTotalEarnings(paymentRepository.sumEarningsByUserId(userId));
+            vo.setTotalEarnings(paymentRepository.sumEarningsByUserId(userId, PaymentType.RELEASE, PaymentStatus.COMPLETED));
             vo.setTotalSpent(BigDecimal.ZERO);
         }
 

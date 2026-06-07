@@ -19,13 +19,17 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
     List<Payment> findByProjectId(Integer projectId);
 
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.payeeId = :userId " +
-           "AND p.type = 'RELEASE' AND p.status = 'COMPLETED'")
-    BigDecimal sumEarningsByUserId(@Param("userId") Integer userId);
+    @Query("SELECT COALESCE(SUM(p.amount), 0.00) FROM Payment p WHERE p.payeeId = :userId " +
+           "AND p.type = :type AND p.status = :status")
+    BigDecimal sumEarningsByUserId(@Param("userId") Integer userId,
+                                    @Param("type") PaymentType type,
+                                    @Param("status") PaymentStatus status);
 
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.payerId = :userId " +
-           "AND p.type = 'RELEASE' AND p.status = 'COMPLETED'")
-    BigDecimal sumSpentByUserId(@Param("userId") Integer userId);
+    @Query("SELECT COALESCE(SUM(p.amount), 0.00) FROM Payment p WHERE p.payerId = :userId " +
+           "AND p.type = :type AND p.status = :status")
+    BigDecimal sumSpentByUserId(@Param("userId") Integer userId,
+                                 @Param("type") PaymentType type,
+                                 @Param("status") PaymentStatus status);
 
     boolean existsByProjectIdAndTypeAndStatus(Integer projectId, PaymentType type, PaymentStatus status);
 }
