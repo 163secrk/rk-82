@@ -4,7 +4,8 @@ import { User, Mail, Shield, Star, Edit3, Save, Loader2, MessageSquare } from 'l
 import { formatMoney, getRoleText, formatDate } from '@/utils/format';
 import { useAuthStore } from '@/stores/auth';
 import { getReviewsByUserId, getUserRatingSummary } from '@/api/review';
-import type { Review } from '@/types/models';
+import { getDashboard } from '@/api/project';
+import type { Review, Dashboard } from '@/types/models';
 
 const authStore = useAuthStore();
 
@@ -16,6 +17,8 @@ const loading = ref(false);
 const reviewsLoading = ref(false);
 const reviews = ref<Review[]>([]);
 const reviewSummary = ref({ averageRating: 0, reviewCount: 0 });
+const dashboard = ref<Dashboard | null>(null);
+const dashboardLoading = ref(false);
 
 const fetchReviews = async () => {
   if (!authStore.user) return;
@@ -32,6 +35,17 @@ const fetchReviews = async () => {
     console.error('Failed to fetch reviews:', error);
   } finally {
     reviewsLoading.value = false;
+  }
+};
+
+const fetchDashboard = async () => {
+  dashboardLoading.value = true;
+  try {
+    dashboard.value = await getDashboard();
+  } catch (error) {
+    console.error('Failed to fetch dashboard:', error);
+  } finally {
+    dashboardLoading.value = false;
   }
 };
 
@@ -79,6 +93,7 @@ initForm();
 
 onMounted(() => {
   fetchReviews();
+  fetchDashboard();
 });
 </script>
 
@@ -296,13 +311,13 @@ onMounted(() => {
               <div class="p-4 bg-green-50 rounded-lg">
                 <p class="text-sm text-gray-500">累计收入</p>
                 <p class="text-lg font-semibold text-green-600">
-                  {{ formatMoney(0) }}
+                  {{ formatMoney(dashboard?.totalEarnings || 0) }}
                 </p>
               </div>
               <div class="p-4 bg-red-50 rounded-lg">
                 <p class="text-sm text-gray-500">累计支出</p>
                 <p class="text-lg font-semibold text-red-600">
-                  {{ formatMoney(0) }}
+                  {{ formatMoney(dashboard?.totalSpent || 0) }}
                 </p>
               </div>
             </div>
