@@ -56,6 +56,10 @@ public class PaymentService {
             throw new BusinessException("项目状态不允许托管资金");
         }
 
+        if (project.getStatus() == ProjectStatus.DISPUTED) {
+            throw new BusinessException("项目存在争议，暂无法进行资金操作");
+        }
+
         if (paymentRepository.existsByProjectIdAndTypeAndStatus(
                 request.getProjectId(), PaymentType.ESCROW, PaymentStatus.COMPLETED)) {
             throw new BusinessException("该项目已托管资金");
@@ -98,6 +102,10 @@ public class PaymentService {
 
         if (project.getStatus() != ProjectStatus.DELIVERED && project.getStatus() != ProjectStatus.IN_PROGRESS) {
             throw new BusinessException("项目状态不允许结算资金");
+        }
+
+        if (project.getStatus() == ProjectStatus.DISPUTED) {
+            throw new BusinessException("项目存在争议，暂无法进行资金操作");
         }
 
         if (!paymentRepository.existsByProjectIdAndTypeAndStatus(

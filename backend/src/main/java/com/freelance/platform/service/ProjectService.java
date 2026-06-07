@@ -110,6 +110,10 @@ public class ProjectService {
             throw new BusinessException("项目状态不允许交付");
         }
 
+        if (project.getStatus() == ProjectStatus.DISPUTED) {
+            throw new BusinessException("项目存在争议，暂无法进行操作");
+        }
+
         project.setStatus(ProjectStatus.DELIVERED);
         project = projectRepository.save(project);
         return convertToDetailVO(project);

@@ -110,11 +110,37 @@ CREATE TABLE IF NOT EXISTS project_milestone (
   FOREIGN KEY (project_id) REFERENCES project(id)
 );
 
+CREATE TABLE IF NOT EXISTS dispute (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  initiator_id INTEGER NOT NULL,
+  respondent_id INTEGER NOT NULL,
+  reason TEXT NOT NULL,
+  claimed_amount DECIMAL(10,2) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  resolution TEXT,
+  resolved_amount DECIMAL(10,2),
+  resolved_at DATETIME,
+  admin_id INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES project(id),
+  FOREIGN KEY (initiator_id) REFERENCES "user"(id),
+  FOREIGN KEY (respondent_id) REFERENCES "user"(id),
+  FOREIGN KEY (admin_id) REFERENCES "user"(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dispute_project ON dispute(project_id);
+CREATE INDEX IF NOT EXISTS idx_dispute_status ON dispute(status);
+CREATE INDEX IF NOT EXISTS idx_dispute_initiator ON dispute(initiator_id);
+CREATE INDEX IF NOT EXISTS idx_dispute_respondent ON dispute(respondent_id);
+
 CREATE INDEX IF NOT EXISTS idx_message_project ON message(project_id);
 CREATE INDEX IF NOT EXISTS idx_message_unread ON message(receiver_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_milestone_project ON project_milestone(project_id);
 
-INSERT OR IGNORE INTO "user" (email, password, nickname, role, balance) VALUES 
+INSERT OR IGNORE INTO "user" (email, password, nickname, role, balance) VALUES
+('admin@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '系统管理员', 'ADMIN', 0.00), 
 ('client@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试发包方', 'CLIENT', 10000.00),
 ('freelancer@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试接包方', 'FREELANCER', 0.00);
 

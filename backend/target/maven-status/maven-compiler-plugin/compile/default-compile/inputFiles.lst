@@ -4,10 +4,13 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\c
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\security\JwtAuthenticationFilter.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\LoginResponse.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\AuthService.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\DisputeRepository.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\enums\DisputeStatus.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\AuthController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\ProjectMilestoneController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\DashboardVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\ChatController.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\DisputeResolutionRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\MessageService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\MessageController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\BidService.java
@@ -21,9 +24,12 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\d
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Bid.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\User.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\ProjectRepository.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\DisputeController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\CreateMilestoneRequest.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\DisputeVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\ReleaseRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\ProjectService.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Dispute.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\Result.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\ReviewController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\MilestoneVO.java
@@ -36,6 +42,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\e
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\MonthlyTrendVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Review.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\PaymentRepository.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\CreateDisputeRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\RegisterRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\ProjectDetailVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\exception\GlobalExceptionHandler.java
@@ -44,6 +51,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\d
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\CreateBidRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\enums\BidStatus.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\BidRepository.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\DisputeService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Project.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\security\JwtTokenProvider.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\enums\ProjectStatus.java

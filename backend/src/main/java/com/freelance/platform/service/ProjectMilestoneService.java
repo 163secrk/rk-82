@@ -1,5 +1,6 @@
 package com.freelance.platform.service;
 
+import com.freelance.platform.common.enums.ProjectStatus;
 import com.freelance.platform.common.enums.UserRole;
 import com.freelance.platform.dto.request.CreateMilestoneRequest;
 import com.freelance.platform.dto.request.UpdateMilestoneRequest;
@@ -135,6 +136,10 @@ public class ProjectMilestoneService {
 
         if (user.getRole() != UserRole.CLIENT || !project.getClientId().equals(userId)) {
             throw new BusinessException(403, "只有项目发包方可以操作里程碑");
+        }
+
+        if (project.getStatus() == ProjectStatus.DISPUTED) {
+            throw new BusinessException("项目存在争议，暂无法进行操作");
         }
     }
 
