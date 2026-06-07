@@ -3,10 +3,11 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Send, MessageSquare, User, ArrowLeft } from 'lucide-vue-next';
 import { getConversations, getMessages } from '@/api/message';
+import { getProjectDetail } from '@/api/project';
 import { formatDate } from '@/utils/format';
 import { useWebSocket } from '@/composables/useWebSocket';
 import { useAuthStore } from '@/stores/auth';
-import type { Message } from '@/types/models';
+import type { Message, Project } from '@/types/models';
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -17,8 +18,10 @@ const { connect, subscribeToChat, sendMessage } = useWebSocket();
 const conversations = ref<Message[]>([]);
 const messages = ref<Message[]>([]);
 const selectedProjectId = ref<number | null>(null);
+const currentProject = ref<Project | null>(null);
 const newMessage = ref('');
 const loading = ref(true);
+const loadingProject = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
 
 const currentProjectId = computed(() => {
@@ -28,6 +31,33 @@ const currentProjectId = computed(() => {
 
 const selectedConversation = computed(() => {
   return conversations.value.find(c => c.projectId === selectedProjectId.value);
+});
+
+const receiverId = computed(() => {
+  if (currentProject.value && authStore.user) {
+    if (currentProject.value.clientId === authStore.user.id) {
+      return currentProject.value.freelancerId;
+    } else if (currentProject.value.freelancerId === authStore.user.id) {
+      return currentProject.value.clientId;
+    }
+  }
+  if (selectedConversation.value) {
+    return selectedConversation.value.senderId === authStore.user?.id
+      ? selectedConversation.value.receiverId
+      : selectedConversation.value.senderId;
+  }
+  return null;
+});
+
+const chatPartnerName = computed(() => {
+  if (currentProject.value && authStore.user) {
+    if (currentProject.value.clientId === authStore.user.id) {
+      return currentProject.value.freelancerName;
+    } else if (currentProject.value.freelancerId === authStore.user.id) {
+      return currentProject.value.clientName;
+    }
+  }
+  return '';
 });
 
 const scrollToBottom = async () => {
@@ -48,6 +78,17 @@ const fetchConversations = async () => {
   }
 };
 
+const fetchProject = async (projectId: number) => {
+  try {
+    loadingProject.value = true;
+    currentProject.value = await getProjectDetail(projectId);
+  } catch (error) {
+    console.error('Failed to fetch project:', error);
+  } finally {
+    loadingProject.value = false;
+  }
+};
+
 const fetchMessages = async (projectId: number) => {
   try {
     const data = await getMessages(projectId);
@@ -58,10 +99,14 @@ const fetchMessages = async (projectId: number) => {
   }
 };
 
-const handleSelectConversation = (projectId: number) => {
+const handleSelectConversation = async (projectId: number) => {
   selectedProjectId.value = projectId;
   router.push(`/chat/${projectId}`);
-  fetchMessages(projectId);
+  
+  await Promise.all([
+    fetchProject(projectId),
+    fetchMessages(projectId)
+  ]);
 
   if (authStore.token) {
     connect(authStore.token);
@@ -77,16 +122,13 @@ const handleSelectConversation = (projectId: number) => {
 const handleSendMessage = () => {
   if (!newMessage.value.trim() || !selectedProjectId.value) return;
 
-  const receiverId = selectedConversation.value?.senderId === authStore.user?.id
-    ? selectedConversation.value.receiverId
-    : selectedConversation.value?.senderId;
-
-  if (!receiverId) return;
+  const targetReceiverId = receiverId.value;
+  if (!targetReceiverId) return;
 
   sendMessage({
     projectId: selectedProjectId.value,
     senderId: authStore.user!.id,
-    receiverId,
+    receiverId: targetReceiverId,
     content: newMessage.value.trim(),
     type: 'TEXT'
   });
@@ -97,7 +139,7 @@ const handleSendMessage = () => {
     senderId: authStore.user!.id,
     senderName: authStore.user!.nickname,
     senderAvatar: authStore.user!.avatar,
-    receiverId,
+    receiverId: targetReceiverId,
     content: newMessage.value.trim(),
     type: 'TEXT',
     isRead: false,
@@ -201,8 +243,10 @@ onMounted(async () => {
             <User class="w-5 h-5 text-indigo-600" />
           </div>
           <div>
-            <p class="font-medium text-gray-800">项目 #{{ selectedProjectId }}</p>
-            <p class="text-sm text-gray-500">在线沟通</p>
+            <p class="font-medium text-gray-800">
+              {{ chatPartnerName || `项目 #${selectedProjectId}` }}
+            </p>
+            <p class="text-sm text-gray-500">{{ currentProject?.title || '在线沟通' }}</p>
           </div>
         </div>
 
@@ -210,7 +254,21 @@ onMounted(async () => {
           ref="messagesContainer"
           class="flex-1 overflow-auto p-6 bg-gray-50 space-y-4"
         >
+          <div v-if="loadingProject" class="flex items-center justify-center h-full">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-200 border-t-indigo-600"></div>
+          </div>
+          
+          <div v-else-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
+            <MessageSquare class="w-16 h-16 text-gray-300 mb-4" />
+            <h4 class="text-lg font-medium text-gray-800 mb-2">开始聊天</h4>
+            <p class="text-gray-500 mb-2">
+              {{ chatPartnerName ? `与 ${chatPartnerName} 开始沟通` : '与对方开始沟通' }}
+            </p>
+            <p class="text-sm text-gray-400">发送第一条消息开始您的项目合作</p>
+          </div>
+
           <div
+            v-else
             v-for="msg in messages"
             :key="msg.id"
             :class="['flex', isMyMessage(msg) ? 'justify-end' : 'justify-start']"
@@ -247,7 +305,7 @@ onMounted(async () => {
             />
             <button
               @click="handleSendMessage"
-              :disabled="!newMessage.trim()"
+              :disabled="!newMessage.trim() || !receiverId"
               class="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Send class="w-5 h-5" />

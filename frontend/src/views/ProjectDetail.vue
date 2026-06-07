@@ -176,6 +176,19 @@ const canReview = computed(() => {
   return false;
 });
 
+const canChat = computed(() => {
+  if (!project.value || project.value.status === 'DRAFT') return false;
+  if (isFreelancer.value) {
+    return project.value.freelancerId === authStore.user?.id;
+  }
+  if (isOwner.value) {
+    return project.value.status === 'IN_PROGRESS' ||
+           project.value.status === 'DELIVERED' ||
+           project.value.status === 'COMPLETED';
+  }
+  return false;
+});
+
 const reviewTarget = computed(() => {
   if (isOwner.value) return project.value?.freelancerName;
   if (isFreelancer.value) return project.value?.clientName;
@@ -557,7 +570,7 @@ onMounted(() => {
 
       <div class="flex flex-wrap gap-4 mt-8 pt-6 border-t border-gray-100">
         <button
-          v-if="(isOwner || isFreelancer) && project.status !== 'DRAFT'"
+          v-if="canChat"
           @click="handleChat"
           class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
         >
