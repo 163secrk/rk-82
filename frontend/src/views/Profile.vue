@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { User, Mail, Shield, Star, Edit3, Save, Loader2 } from 'lucide-vue-next';
-import { formatMoney, getRoleText } from '@/utils/format';
+import { ref, computed, onMounted } from 'vue';
+import { User, Mail, Shield, Star, Edit3, Save, Loader2, MessageSquare } from 'lucide-vue-next';
+import { formatMoney, getRoleText, formatDate } from '@/utils/format';
 import { useAuthStore } from '@/stores/auth';
+import { getReviewsByUserId, getUserRatingSummary } from '@/api/review';
+import type { Review } from '@/types/models';
 
 const authStore = useAuthStore();
 
@@ -11,6 +13,27 @@ const nickname = ref('');
 const description = ref('');
 const skills = ref('');
 const loading = ref(false);
+const reviewsLoading = ref(false);
+const reviews = ref<Review[]>([]);
+const reviewSummary = ref({ averageRating: 0, reviewCount: 0 });
+
+const fetchReviews = async () => {
+  if (!authStore.user) return;
+  
+  reviewsLoading.value = true;
+  try {
+    const [reviewsData, summaryData] = await Promise.all([
+      getReviewsByUserId(authStore.user.id),
+      getUserRatingSummary(authStore.user.id)
+    ]);
+    reviews.value = reviewsData;
+    reviewSummary.value = summaryData;
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error);
+  } finally {
+    reviewsLoading.value = false;
+  }
+};
 
 const initForm = () => {
   if (authStore.user) {
@@ -53,6 +76,10 @@ const skillList = computed(() => {
 });
 
 initForm();
+
+onMounted(() => {
+  fetchReviews();
+});
 </script>
 
 <template>
@@ -78,7 +105,10 @@ initForm();
                 <div class="flex items-center text-yellow-500">
                   <Star class="w-4 h-4 fill-current" />
                   <span class="ml-1 text-gray-600 text-sm">
-                    {{ authStore.user?.rating?.toFixed(1) || '0.0' }}
+                    {{ reviewSummary.averageRating.toFixed(1) || '0.0' }}
+                  </span>
+                  <span class="ml-1 text-gray-400 text-xs">
+                    ({{ reviewSummary.reviewCount }}条评价)
                   </span>
                 </div>
               </div>
@@ -189,6 +219,67 @@ initForm();
             </div>
           </div>
         </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+              <MessageSquare class="w-5 h-5 mr-2 text-indigo-600" />
+              收到的评价
+            </h3>
+            <span class="text-sm text-gray-500">共 {{ reviews.length }} 条</span>
+          </div>
+
+          <div v-if="reviewsLoading" class="flex items-center justify-center py-12">
+            <Loader2 class="w-8 h-8 animate-spin text-indigo-600" />
+          </div>
+
+          <div v-else-if="reviews.length === 0" class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star class="w-8 h-8 text-gray-400" />
+            </div>
+            <h4 class="text-lg font-medium text-gray-800 mb-2">暂无评价</h4>
+            <p class="text-gray-500">完成项目后将收到对方的评价</p>
+          </div>
+
+          <div v-else class="space-y-4">
+            <div
+              v-for="review in reviews"
+              :key="review.id"
+              class="p-5 border border-gray-100 rounded-xl hover:shadow-sm transition-shadow"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span class="text-indigo-600 font-semibold">
+                      {{ review.reviewerName?.charAt(0) }}
+                    </span>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-800">{{ review.reviewerName }}</p>
+                    <p class="text-xs text-gray-500">{{ formatDate(review.createdAt) }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <Star
+                    v-for="i in 5"
+                    :key="i"
+                    :class="[
+                      'w-4 h-4',
+                      i <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-200'
+                    ]"
+                  />
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mb-2">项目：{{ review.projectTitle }}</p>
+              <p v-if="review.comment" class="text-gray-600 text-sm leading-relaxed">
+                {{ review.comment }}
+              </p>
+              <p v-else class="text-gray-400 text-sm italic">
+                未填写评价内容
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="space-y-6">
@@ -224,7 +315,7 @@ initForm();
             <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 mb-4">
               <div class="text-center">
                 <p class="text-3xl font-bold text-yellow-600">
-                  {{ authStore.user?.rating?.toFixed(1) || '0.0' }}
+                  {{ reviewSummary.averageRating.toFixed(1) || '0.0' }}
                 </p>
               </div>
             </div>
@@ -234,13 +325,13 @@ initForm();
                 :key="i"
                 :class="[
                   'w-6 h-6',
-                  i <= Math.floor(authStore.user?.rating || 0)
+                  i <= Math.floor(reviewSummary.averageRating || 0)
                     ? 'text-yellow-400 fill-current'
                     : 'text-gray-200'
                 ]"
               />
             </div>
-            <p class="text-sm text-gray-500">基于项目评价计算</p>
+            <p class="text-sm text-gray-500">基于 {{ reviewSummary.reviewCount }} 条评价计算</p>
           </div>
         </div>
       </div>

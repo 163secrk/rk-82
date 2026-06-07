@@ -10,12 +10,15 @@ import {
   Shield,
   CheckCircle,
   Clock,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-vue-next';
 import { getProjectDetail } from '@/api/project';
 import { getBidsByProject, createBid, acceptBid } from '@/api/bid';
 import { escrow, release } from '@/api/payment';
 import { deliverProject } from '@/api/project';
+import { createReview } from '@/api/review';
+import type { Review } from '@/types/models';
 import { formatMoney, formatDate, getStatusText, getStatusColor } from '@/utils/format';
 import type { Project, Bid } from '@/types/models';
 import { useAuthStore } from '@/stores/auth';
@@ -40,6 +43,12 @@ const escrowAmount = ref('');
 
 const showReleaseModal = ref(false);
 const releaseAmount = ref('');
+
+const showReviewModal = ref(false);
+const reviewRating = ref(5);
+const reviewComment = ref('');
+const hoverRating = ref(0);
+const reviews = ref<Review[]>([]);
 
 const error = ref('');
 
@@ -70,6 +79,19 @@ const canBid = computed(() => {
   return authStore.isFreelancer &&
     project.value?.status === 'PUBLISHED' &&
     !bids.value.some(b => b.freelancerId === authStore.user?.id);
+});
+
+const canReview = computed(() => {
+  if (!project.value || project.value.status !== 'COMPLETED') return false;
+  if (isOwner.value && !project.value.clientReviewed) return true;
+  if (isFreelancer.value && !project.value.freelancerReviewed) return true;
+  return false;
+});
+
+const reviewTarget = computed(() => {
+  if (isOwner.value) return project.value?.freelancerName;
+  if (isFreelancer.value) return project.value?.clientName;
+  return '';
 });
 
 const handleBid = async () => {
@@ -185,6 +207,40 @@ const handleRelease = async () => {
 
 const handleChat = () => {
   router.push(`/chat/${projectId.value}`);
+};
+
+const handleReview = async () => {
+  if (reviewRating.value < 1 || reviewRating.value > 5) {
+    error.value = '请选择有效的评分';
+    return;
+  }
+
+  submitting.value = true;
+  error.value = '';
+
+  try {
+    await createReview({
+      projectId: projectId.value,
+      rating: reviewRating.value,
+      comment: reviewComment.value.trim() || undefined
+    });
+    showReviewModal.value = false;
+    reviewRating.value = 5;
+    reviewComment.value = '';
+    fetchData();
+  } catch (err: any) {
+    error.value = err.message || '评价失败，请重试';
+  } finally {
+    submitting.value = false;
+  }
+};
+
+const setRating = (rating: number) => {
+  reviewRating.value = rating;
+};
+
+const setHoverRating = (rating: number) => {
+  hoverRating.value = rating;
 };
 
 onMounted(() => {
@@ -312,6 +368,23 @@ onMounted(() => {
           <CheckCircle class="w-5 h-5 mr-2" />
           确认验收并付款
         </button>
+
+        <button
+          v-if="canReview"
+          @click="showReviewModal = true"
+          class="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+        >
+          <Star class="w-5 h-5 mr-2" />
+          评价{{ reviewTarget }}
+        </button>
+
+        <div
+          v-if="project.status === 'COMPLETED' && !canReview && (isOwner || isFreelancer)"
+          class="px-6 py-3 bg-gray-100 text-gray-500 font-medium rounded-lg flex items-center"
+        >
+          <CheckCircle class="w-5 h-5 mr-2" />
+          已完成评价
+        </div>
       </div>
     </div>
 
@@ -511,6 +584,72 @@ onMounted(() => {
             >
               <Loader2 v-if="submitting" class="w-5 h-5 animate-spin mr-2" />
               {{ submitting ? '处理中...' : '确认付款' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      v-if="showReviewModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      @click.self="showReviewModal = false"
+    >
+      <div class="bg-white rounded-xl p-8 w-full max-w-lg mx-4">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">评价{{ reviewTarget }}</h3>
+        <p class="text-gray-500 mb-6">项目已完成，请为对方的服务进行评价</p>
+        <form @submit.prevent="handleReview" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">评分</label>
+            <div class="flex items-center space-x-2">
+              <button
+                v-for="i in 5"
+                :key="i"
+                type="button"
+                @click="setRating(i)"
+                @mouseenter="setHoverRating(i)"
+                @mouseleave="setHoverRating(0)"
+                class="focus:outline-none transition-transform hover:scale-110"
+              >
+                <Star
+                  :class="[
+                    'w-10 h-10 transition-colors',
+                    (hoverRating || reviewRating) >= i
+                      ? 'text-yellow-400 fill-current'
+                      : 'text-gray-200'
+                  ]"
+                />
+              </button>
+              <span class="ml-4 text-2xl font-bold text-gray-700">
+                {{ reviewRating }}.0
+              </span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">评价内容（可选）</label>
+            <textarea
+              v-model="reviewComment"
+              rows="4"
+              placeholder="分享您的合作体验..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+            ></textarea>
+          </div>
+          <p v-if="error" class="text-red-500 text-sm">{{ error }}</p>
+          <div class="flex space-x-4">
+            <button
+              type="button"
+              @click="showReviewModal = false"
+              class="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              :disabled="submitting"
+              class="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center"
+            >
+              <Loader2 v-if="submitting" class="w-5 h-5 animate-spin mr-2" />
+              {{ submitting ? '提交中...' : '提交评价' }}
             </button>
           </div>
         </form>

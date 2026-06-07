@@ -44,6 +44,23 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
   bidCount: number;
+  clientReviewed?: boolean;
+  freelancerReviewed?: boolean;
+}
+
+export interface Review {
+  id: number;
+  projectId: number;
+  projectTitle: string;
+  reviewerId: number;
+  reviewerName: string;
+  reviewerAvatar: string;
+  revieweeId: number;
+  revieweeName: string;
+  revieweeAvatar: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 export interface Bid {

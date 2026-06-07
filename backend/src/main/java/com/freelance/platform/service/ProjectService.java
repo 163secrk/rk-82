@@ -9,6 +9,7 @@ import com.freelance.platform.entity.User;
 import com.freelance.platform.exception.BusinessException;
 import com.freelance.platform.repository.BidRepository;
 import com.freelance.platform.repository.ProjectRepository;
+import com.freelance.platform.repository.ReviewRepository;
 import com.freelance.platform.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class ProjectService {
 
     @Autowired
     private BidRepository bidRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Transactional
     public ProjectDetailVO createProject(CreateProjectRequest request, Integer clientId) {
@@ -123,6 +127,14 @@ public class ProjectService {
         }
 
         vo.setBidCount((int) bidRepository.countByProjectId(project.getId()));
+
+        vo.setClientReviewed(reviewRepository.existsByProjectIdAndReviewerId(project.getId(), project.getClientId()));
+        if (project.getFreelancerId() != null) {
+            vo.setFreelancerReviewed(reviewRepository.existsByProjectIdAndReviewerId(project.getId(), project.getFreelancerId()));
+        } else {
+            vo.setFreelancerReviewed(false);
+        }
+
         return vo;
     }
 }

@@ -43,4 +43,8 @@ public class ProjectDetailVO {
     private LocalDateTime updatedAt;
 
     private Integer bidCount;
+
+    private Boolean clientReviewed;
+
+    private Boolean freelancerReviewed;
 }

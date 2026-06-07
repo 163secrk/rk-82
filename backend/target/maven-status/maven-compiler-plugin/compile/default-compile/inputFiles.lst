@@ -13,6 +13,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\s
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\config\SecurityConfig.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\PaymentService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\LocalDateTimeDeserializer.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\ReviewService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\PlatformApplication.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\MessageVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Bid.java
@@ -21,6 +22,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\r
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\ReleaseRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\ProjectService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\Result.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\ReviewController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\UserRepository.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\CreateProjectRequest.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\exception\BusinessException.java
@@ -52,6 +54,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\e
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\PaymentController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\UserService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\enums\PaymentStatus.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\ReviewVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\controller\ProjectController.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\common\enums\UserRole.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\BidVO.java
