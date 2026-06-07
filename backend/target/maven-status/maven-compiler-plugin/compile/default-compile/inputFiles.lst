@@ -33,6 +33,7 @@ D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\e
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\service\ProjectMilestoneService.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\ProjectMilestone.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Message.java
+D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\response\MonthlyTrendVO.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\entity\Review.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\repository\PaymentRepository.java
 D:\data\projects\bz-6\repos\rk-82\backend\src\main\java\com\freelance\platform\dto\request\RegisterRequest.java

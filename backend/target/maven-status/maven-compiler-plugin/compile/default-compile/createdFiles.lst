@@ -1,6 +1,7 @@
 com\freelance\platform\controller\ProjectController.class
 com\freelance\platform\controller\ChatController.class
 com\freelance\platform\dto\request\CreateBidRequest.class
+com\freelance\platform\dto\response\MonthlyTrendVO.class
 com\freelance\platform\exception\BusinessException.class
 com\freelance\platform\config\DataInitializer.class
 com\freelance\platform\controller\BidController.class
@@ -10,14 +11,19 @@ com\freelance\platform\dto\response\LoginResponse.class
 com\freelance\platform\service\MessageService.class
 com\freelance\platform\config\CorsConfig.class
 com\freelance\platform\dto\request\CreateProjectRequest.class
+com\freelance\platform\dto\response\ReviewVO.class
 com\freelance\platform\service\ProjectService.class
 com\freelance\platform\service\AuthService.class
+com\freelance\platform\service\ProjectMilestoneService.class
 com\freelance\platform\common\enums\MessageType.class
 com\freelance\platform\entity\Message.class
 com\freelance\platform\exception\GlobalExceptionHandler.class
 com\freelance\platform\common\enums\PaymentStatus.class
 com\freelance\platform\repository\ProjectRepository.class
 com\freelance\platform\common\LocalDateTimeDeserializer.class
+com\freelance\platform\entity\ProjectMilestone.class
+com\freelance\platform\dto\response\MilestoneVO.class
+com\freelance\platform\dto\request\CreateMilestoneRequest.class
 com\freelance\platform\dto\request\EscrowRequest.class
 com\freelance\platform\config\WebSocketConfig.class
 com\freelance\platform\common\enums\BidStatus.class
@@ -29,6 +35,7 @@ com\freelance\platform\common\enums\UserRole.class
 com\freelance\platform\service\BidService.class
 com\freelance\platform\common\Result.class
 com\freelance\platform\service\UserService.class
+com\freelance\platform\controller\ReviewController.class
 com\freelance\platform\entity\User.class
 com\freelance\platform\config\SecurityConfig.class
 com\freelance\platform\common\enums\PaymentType.class
@@ -43,10 +50,13 @@ com\freelance\platform\dto\response\PaymentVO.class
 com\freelance\platform\entity\Project.class
 com\freelance\platform\dto\request\RegisterRequest.class
 com\freelance\platform\PlatformApplication.class
+com\freelance\platform\service\ReviewService.class
 com\freelance\platform\common\enums\ProjectStatus.class
 com\freelance\platform\service\PaymentService.class
 com\freelance\platform\controller\PaymentController.class
 com\freelance\platform\entity\Review.class
+com\freelance\platform\dto\request\UpdateMilestoneRequest.class
+com\freelance\platform\repository\ProjectMilestoneRepository.class
 com\freelance\platform\security\JwtAuthenticationFilter.class
 com\freelance\platform\repository\PaymentRepository.class
 com\freelance\platform\controller\AuthController.class
@@ -56,3 +66,4 @@ com\freelance\platform\entity\Payment.class
 com\freelance\platform\security\CustomUserDetailsService.class
 com\freelance\platform\dto\request\LoginRequest.class
 com\freelance\platform\repository\UserRepository.class
+com\freelance\platform\controller\ProjectMilestoneController.class

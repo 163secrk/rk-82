@@ -145,6 +145,11 @@ export interface Dashboard {
   balance: number;
 }
 
+export interface MonthlyTrend {
+  month: string;
+  amount: number;
+}
+
 export interface Result<T> {
   code: number;
   message: string;

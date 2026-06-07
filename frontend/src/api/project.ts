@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { Project, Dashboard, Milestone, CreateMilestoneRequest, UpdateMilestoneRequest } from '@/types/models';
+import type { Project, Dashboard, MonthlyTrend, Milestone, CreateMilestoneRequest, UpdateMilestoneRequest } from '@/types/models';
 
 export interface CreateProjectRequest {
   title: string;
@@ -45,6 +45,10 @@ export function deliverProject(id: number): Promise<Project> {
 
 export function getDashboard(): Promise<Dashboard> {
   return request.get('/users/dashboard');
+}
+
+export function getMonthlyTrend(): Promise<MonthlyTrend[]> {
+  return request.get('/users/monthly-trend');
 }
 
 export function createMilestone(projectId: number, data: CreateMilestoneRequest): Promise<Milestone> {

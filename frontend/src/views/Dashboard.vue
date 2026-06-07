@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   Briefcase,
@@ -10,12 +10,14 @@ import {
   TrendingUp,
   TrendingDown,
   Wallet,
-  ArrowRight
+  ArrowRight,
+  LineChart
 } from 'lucide-vue-next';
-import { getDashboard } from '@/api/project';
+import * as echarts from 'echarts';
+import { getDashboard, getMonthlyTrend } from '@/api/project';
 import { getMyProjects } from '@/api/project';
 import { formatMoney, getStatusText, getStatusColor } from '@/utils/format';
-import type { Dashboard, Project } from '@/types/models';
+import type { Dashboard, Project, MonthlyTrend } from '@/types/models';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
@@ -23,7 +25,10 @@ const router = useRouter();
 
 const dashboard = ref<Dashboard | null>(null);
 const recentProjects = ref<Project[]>([]);
+const monthlyTrend = ref<MonthlyTrend[]>([]);
 const loading = ref(true);
+const chartRef = ref<HTMLDivElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
 
 const fetchData = async () => {
   try {
@@ -33,6 +38,13 @@ const fetchData = async () => {
     ]);
     dashboard.value = dashData;
     recentProjects.value = projectsData.slice(0, 5);
+
+    try {
+      const trendData = await getMonthlyTrend();
+      monthlyTrend.value = trendData;
+    } catch (trendError) {
+      console.error('Failed to fetch monthly trend:', trendError);
+    }
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
   } finally {
@@ -60,8 +72,154 @@ const getStatItems = () => {
   }
 };
 
+const initChart = () => {
+  if (!chartRef.value) return;
+
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+
+  chartInstance = echarts.init(chartRef.value);
+
+  const months = monthlyTrend.value.map(item => item.month);
+  const amounts = monthlyTrend.value.map(item => item.amount);
+  const isClient = authStore.isClient;
+  const lineColor = isClient ? '#f97316' : '#22c55e';
+  const areaColor = isClient
+    ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: 'rgba(249, 115, 22, 0.3)' },
+        { offset: 1, color: 'rgba(249, 115, 22, 0.05)' }
+      ])
+    : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: 'rgba(34, 197, 94, 0.3)' },
+        { offset: 1, color: 'rgba(34, 197, 94, 0.05)' }
+      ]);
+
+  const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e5e7eb',
+      borderWidth: 1,
+      textStyle: {
+        color: '#374151'
+      },
+      formatter: (params: any) => {
+        const data = params[0];
+        return `<div class="font-medium">${data.name}</div>
+                <div class="text-sm">${isClient ? '支出' : '收入'}：<span class="font-semibold" style="color: ${lineColor}">¥${data.value.toLocaleString()}</span></div>`;
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: months,
+      axisLine: {
+        lineStyle: {
+          color: '#e5e7eb'
+        }
+      },
+      axisLabel: {
+        color: '#6b7280',
+        fontSize: 11,
+        formatter: (value: string) => {
+          const parts = value.split('-');
+          return `${parts[0].slice(2)}/${parts[1]}`;
+        }
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        color: '#6b7280',
+        fontSize: 11,
+        formatter: (value: number) => {
+          if (value >= 10000) {
+            return (value / 10000) + 'w';
+          }
+          return value.toString();
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#f3f4f6',
+          type: 'dashed'
+        }
+      }
+    },
+    series: [
+      {
+        name: isClient ? '支出' : '收入',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        showSymbol: false,
+        lineStyle: {
+          color: lineColor,
+          width: 2
+        },
+        itemStyle: {
+          color: lineColor,
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        areaStyle: {
+          color: areaColor as any
+        },
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            borderWidth: 3
+          }
+        },
+        data: amounts
+      }
+    ]
+  };
+
+  chartInstance.setOption(option);
+};
+
+const handleResize = () => {
+  chartInstance?.resize();
+};
+
+watch([monthlyTrend, loading], () => {
+  if (!loading.value && monthlyTrend.value.length > 0) {
+    nextTick(() => {
+      initChart();
+    });
+  }
+});
+
 onMounted(() => {
   fetchData();
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
 });
 </script>
 
@@ -110,6 +268,30 @@ onMounted(() => {
         <p class="text-3xl font-bold text-gray-800">{{ dashboard?.unreadMessages || 0 }}</p>
         <p class="text-sm text-gray-500 mt-1">未读消息</p>
       </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <LineChart class="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-gray-800">
+              {{ authStore.isClient ? '按月支出趋势' : '按月收入趋势' }}
+            </h4>
+            <p class="text-sm text-gray-500">最近12个月</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span :class="[
+            'w-3 h-3 rounded-full',
+            authStore.isClient ? 'bg-orange-500' : 'bg-green-500'
+          ]"></span>
+          <span class="text-sm text-gray-500">{{ authStore.isClient ? '支出' : '收入' }}</span>
+        </div>
+      </div>
+      <div ref="chartRef" class="w-full h-72"></div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

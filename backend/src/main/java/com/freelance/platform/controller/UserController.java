@@ -2,8 +2,11 @@ package com.freelance.platform.controller;
 
 import com.freelance.platform.common.Result;
 import com.freelance.platform.dto.response.DashboardVO;
+import com.freelance.platform.dto.response.MonthlyTrendVO;
 import com.freelance.platform.dto.response.UserInfo;
 import com.freelance.platform.entity.User;
+
+import java.util.List;
 import com.freelance.platform.security.CustomUserDetailsService;
 import com.freelance.platform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,13 @@ public class UserController {
         Integer userId = getCurrentUserId();
         DashboardVO dashboard = userService.getDashboard(userId);
         return Result.success(dashboard);
+    }
+
+    @GetMapping("/monthly-trend")
+    public Result<List<MonthlyTrendVO>> getMonthlyTrend() {
+        Integer userId = getCurrentUserId();
+        List<MonthlyTrendVO> trend = userService.getMonthlyTrend(userId);
+        return Result.success(trend);
     }
 
     private Integer getCurrentUserId() {

@@ -5,7 +5,9 @@ import com.freelance.platform.common.enums.PaymentType;
 import com.freelance.platform.common.enums.ProjectStatus;
 import com.freelance.platform.common.enums.UserRole;
 import com.freelance.platform.dto.response.DashboardVO;
+import com.freelance.platform.dto.response.MonthlyTrendVO;
 import com.freelance.platform.dto.response.UserInfo;
+import com.freelance.platform.entity.Payment;
 import com.freelance.platform.entity.User;
 import com.freelance.platform.exception.BusinessException;
 import com.freelance.platform.repository.PaymentRepository;
@@ -19,6 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class UserService {
@@ -92,6 +100,40 @@ public class UserService {
         vo.setUnreadMessages((int) messageRepository.countUnreadByReceiverId(userId));
 
         return vo;
+    }
+
+    public List<MonthlyTrendVO> getMonthlyTrend(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
+
+        LocalDateTime startDate = LocalDateTime.now().minusMonths(11).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+
+        List<Payment> payments;
+        if (user.getRole() == UserRole.CLIENT) {
+            payments = paymentRepository.findByPayerIdAndTypeAndStatusAndCreatedAtGreaterThanEqual(
+                    userId, PaymentType.RELEASE, PaymentStatus.COMPLETED, startDate);
+        } else {
+            payments = paymentRepository.findByPayeeIdAndTypeAndStatusAndCreatedAtGreaterThanEqual(
+                    userId, PaymentType.RELEASE, PaymentStatus.COMPLETED, startDate);
+        }
+
+        Map<String, BigDecimal> trendMap = payments.stream()
+                .collect(Collectors.groupingBy(
+                        p -> String.format("%d-%02d", p.getCreatedAt().getYear(), p.getCreatedAt().getMonthValue()),
+                        Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)
+                ));
+
+        List<MonthlyTrendVO> result = new ArrayList<>();
+        IntStream.range(0, 12).forEach(i -> {
+            LocalDateTime monthDate = LocalDateTime.now().minusMonths(11 - i).withDayOfMonth(1);
+            String month = String.format("%d-%02d", monthDate.getYear(), monthDate.getMonthValue());
+            MonthlyTrendVO vo = new MonthlyTrendVO();
+            vo.setMonth(month);
+            vo.setAmount(trendMap.getOrDefault(month, BigDecimal.ZERO));
+            result.add(vo);
+        });
+
+        return result;
     }
 
     private UserInfo convertToUserInfo(User user) {

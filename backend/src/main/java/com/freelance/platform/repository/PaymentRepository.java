@@ -2,6 +2,7 @@ package com.freelance.platform.repository;
 
 import com.freelance.platform.common.enums.PaymentStatus;
 import com.freelance.platform.common.enums.PaymentType;
+import com.freelance.platform.dto.response.MonthlyTrendVO;
 import com.freelance.platform.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,6 +31,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
     BigDecimal sumSpentByUserId(@Param("userId") Integer userId,
                                  @Param("type") PaymentType type,
                                  @Param("status") PaymentStatus status);
+
+    List<Payment> findByPayeeIdAndTypeAndStatusAndCreatedAtGreaterThanEqual(
+            Integer payeeId, PaymentType type, PaymentStatus status, java.time.LocalDateTime startDate);
+
+    List<Payment> findByPayerIdAndTypeAndStatusAndCreatedAtGreaterThanEqual(
+            Integer payerId, PaymentType type, PaymentStatus status, java.time.LocalDateTime startDate);
 
     boolean existsByProjectIdAndTypeAndStatus(Integer projectId, PaymentType type, PaymentStatus status);
 }
