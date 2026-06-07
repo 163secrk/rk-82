@@ -11,14 +11,19 @@ import {
   CheckCircle,
   Clock,
   Loader2,
-  Star
+  Star,
+  Flag,
+  Plus,
+  Trash2,
+  Edit2,
+  X
 } from 'lucide-vue-next';
-import { getProjectDetail } from '@/api/project';
+import { getProjectDetail, createMilestone, updateMilestone, toggleMilestoneCompletion, deleteMilestone } from '@/api/project';
 import { getBidsByProject, createBid, acceptBid } from '@/api/bid';
 import { escrow, release } from '@/api/payment';
 import { deliverProject } from '@/api/project';
 import { createReview } from '@/api/review';
-import type { Review } from '@/types/models';
+import type { Review, Milestone, CreateMilestoneRequest, UpdateMilestoneRequest } from '@/types/models';
 import { formatMoney, formatDate, getStatusText, getStatusColor } from '@/utils/format';
 import type { Project, Bid } from '@/types/models';
 import { useAuthStore } from '@/stores/auth';
@@ -51,6 +56,89 @@ const hoverRating = ref(0);
 const reviews = ref<Review[]>([]);
 
 const error = ref('');
+
+const showMilestoneModal = ref(false);
+const editingMilestone = ref<Milestone | null>(null);
+const milestoneName = ref('');
+const milestoneDescription = ref('');
+const milestoneExpectedDate = ref('');
+
+const milestones = computed(() => project.value?.milestones || []);
+
+const completedMilestones = computed(() => {
+  return milestones.value.filter(m => m.completed).length;
+});
+
+const openCreateMilestone = () => {
+  editingMilestone.value = null;
+  milestoneName.value = '';
+  milestoneDescription.value = '';
+  milestoneExpectedDate.value = '';
+  showMilestoneModal.value = true;
+};
+
+const openEditMilestone = (milestone: Milestone) => {
+  editingMilestone.value = milestone;
+  milestoneName.value = milestone.name;
+  milestoneDescription.value = milestone.description || '';
+  milestoneExpectedDate.value = milestone.expectedDate.slice(0, 16);
+  showMilestoneModal.value = true;
+};
+
+const handleSaveMilestone = async () => {
+  if (!milestoneName.value.trim()) {
+    error.value = '里程碑名称不能为空';
+    return;
+  }
+  if (!milestoneExpectedDate.value) {
+    error.value = '请选择预计完成时间';
+    return;
+  }
+
+  submitting.value = true;
+  error.value = '';
+
+  try {
+    const data: CreateMilestoneRequest | UpdateMilestoneRequest = {
+      name: milestoneName.value.trim(),
+      description: milestoneDescription.value.trim() || undefined,
+      expectedDate: new Date(milestoneExpectedDate.value).toISOString()
+    };
+
+    if (editingMilestone.value) {
+      await updateMilestone(projectId.value, editingMilestone.value.id, data as UpdateMilestoneRequest);
+    } else {
+      await createMilestone(projectId.value, data);
+    }
+
+    showMilestoneModal.value = false;
+    fetchData();
+  } catch (err: any) {
+    error.value = err.message || '操作失败，请重试';
+  } finally {
+    submitting.value = false;
+  }
+};
+
+const handleToggleMilestone = async (milestoneId: number) => {
+  try {
+    await toggleMilestoneCompletion(projectId.value, milestoneId);
+    fetchData();
+  } catch (err: any) {
+    alert(err.message || '操作失败');
+  }
+};
+
+const handleDeleteMilestone = async (milestoneId: number) => {
+  if (!confirm('确定要删除这个里程碑吗？')) return;
+
+  try {
+    await deleteMilestone(projectId.value, milestoneId);
+    fetchData();
+  } catch (err: any) {
+    alert(err.message || '删除失败');
+  }
+};
 
 const fetchData = async () => {
   try {
@@ -306,6 +394,150 @@ onMounted(() => {
       <div class="border-t border-gray-100 pt-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">项目描述</h3>
         <p class="text-gray-600 leading-relaxed whitespace-pre-wrap">{{ project.description }}</p>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6 mt-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-2">
+            <Flag class="w-5 h-5 text-indigo-600" />
+            <h3 class="text-lg font-semibold text-gray-800">项目里程碑</h3>
+            <span class="text-sm text-gray-500">
+              ({{ completedMilestones }}/{{ milestones.length }})
+            </span>
+          </div>
+          <button
+            v-if="isOwner"
+            @click="openCreateMilestone"
+            class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+          >
+            <Plus class="w-4 h-4 mr-1" />
+            添加里程碑
+          </button>
+        </div>
+
+        <div v-if="milestones.length > 0" class="mb-6">
+          <div class="flex items-center justify-between text-sm mb-2">
+            <span class="text-gray-600">总体进度</span>
+            <span class="font-semibold text-indigo-600">{{ project.milestoneProgress || 0 }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3">
+            <div
+              class="bg-indigo-600 h-3 rounded-full transition-all duration-500"
+              :style="{ width: `${project.milestoneProgress || 0}%` }"
+            ></div>
+          </div>
+        </div>
+
+        <div v-if="milestones.length > 0" class="relative">
+          <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          <div class="space-y-6">
+            <div
+              v-for="(milestone, index) in milestones"
+              :key="milestone.id"
+              class="relative pl-12"
+            >
+              <div
+                :class="[
+                  'absolute left-0 w-8 h-8 rounded-full flex items-center justify-center border-4',
+                  milestone.completed
+                    ? 'bg-green-500 border-green-100'
+                    : 'bg-white border-gray-300'
+                ]"
+              >
+                <CheckCircle
+                  v-if="milestone.completed"
+                  class="w-4 h-4 text-white"
+                />
+                <span v-else class="text-sm font-semibold text-gray-500">
+                  {{ index + 1 }}
+                </span>
+              </div>
+
+              <div
+                :class="[
+                  'p-4 rounded-xl border transition-all',
+                  milestone.completed
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-white border-gray-200 hover:shadow-md'
+                ]"
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                      <h4
+                        :class="[
+                          'font-medium',
+                          milestone.completed ? 'text-green-800 line-through' : 'text-gray-800'
+                        ]"
+                      >
+                        {{ milestone.name }}
+                      </h4>
+                      <span
+                        :class="[
+                          'px-2 py-0.5 rounded text-xs font-medium',
+                          milestone.completed
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-600'
+                        ]"
+                      >
+                        {{ milestone.completed ? '已完成' : '进行中' }}
+                      </span>
+                    </div>
+                    <p v-if="milestone.description" class="text-sm text-gray-500 mt-1">
+                      {{ milestone.description }}
+                    </p>
+                    <div class="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                      <div class="flex items-center space-x-1">
+                        <Clock class="w-3 h-3" />
+                        <span>预计：{{ formatDate(milestone.expectedDate) }}</span>
+                      </div>
+                      <div v-if="milestone.actualDate" class="flex items-center space-x-1">
+                        <CheckCircle class="w-3 h-3" />
+                        <span>完成：{{ formatDate(milestone.actualDate) }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="isOwner" class="flex items-center space-x-1 ml-4">
+                    <button
+                      @click="handleToggleMilestone(milestone.id)"
+                      :class="[
+                        'p-2 rounded-lg transition-colors',
+                        milestone.completed
+                          ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                          : 'text-green-600 hover:bg-green-50'
+                      ]"
+                      :title="milestone.completed ? '取消完成' : '标记完成'"
+                    >
+                      <CheckCircle class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="openEditMilestone(milestone)"
+                      class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="编辑"
+                    >
+                      <Edit2 class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="handleDeleteMilestone(milestone.id)"
+                      class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="删除"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-8 bg-gray-50 rounded-xl">
+          <Flag class="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p class="text-gray-500 mb-2">暂无里程碑</p>
+          <p v-if="isOwner" class="text-sm text-gray-400">点击上方"添加里程碑"按钮创建项目阶段</p>
+          <p v-else class="text-sm text-gray-400">发包方尚未设置项目里程碑</p>
+        </div>
       </div>
 
       <div v-if="project.freelancerId" class="border-t border-gray-100 pt-6 mt-6">
@@ -650,6 +882,72 @@ onMounted(() => {
             >
               <Loader2 v-if="submitting" class="w-5 h-5 animate-spin mr-2" />
               {{ submitting ? '提交中...' : '提交评价' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      v-if="showMilestoneModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      @click.self="showMilestoneModal = false"
+    >
+      <div class="bg-white rounded-xl p-8 w-full max-w-lg mx-4">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-gray-800">
+            {{ editingMilestone ? '编辑里程碑' : '添加里程碑' }}
+          </h3>
+          <button
+            @click="showMilestoneModal = false"
+            class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <form @submit.prevent="handleSaveMilestone" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">里程碑名称 *</label>
+            <input
+              v-model="milestoneName"
+              type="text"
+              placeholder="例如：需求分析完成"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">描述（可选）</label>
+            <textarea
+              v-model="milestoneDescription"
+              rows="3"
+              placeholder="描述这个里程碑需要完成的内容..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">预计完成时间 *</label>
+            <input
+              v-model="milestoneExpectedDate"
+              type="datetime-local"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+            />
+          </div>
+          <p v-if="error" class="text-red-500 text-sm">{{ error }}</p>
+          <div class="flex space-x-4">
+            <button
+              type="button"
+              @click="showMilestoneModal = false"
+              class="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              :disabled="submitting"
+              class="flex-1 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center"
+            >
+              <Loader2 v-if="submitting" class="w-5 h-5 animate-spin mr-2" />
+              {{ submitting ? '保存中...' : (editingMilestone ? '保存修改' : '创建里程碑') }}
             </button>
           </div>
         </form>

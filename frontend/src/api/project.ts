@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { Project, Dashboard } from '@/types/models';
+import type { Project, Dashboard, Milestone, CreateMilestoneRequest, UpdateMilestoneRequest } from '@/types/models';
 
 export interface CreateProjectRequest {
   title: string;
@@ -45,4 +45,28 @@ export function deliverProject(id: number): Promise<Project> {
 
 export function getDashboard(): Promise<Dashboard> {
   return request.get('/users/dashboard');
+}
+
+export function createMilestone(projectId: number, data: CreateMilestoneRequest): Promise<Milestone> {
+  return request.post(`/projects/${projectId}/milestones`, data);
+}
+
+export function getMilestones(projectId: number): Promise<Milestone[]> {
+  return request.get(`/projects/${projectId}/milestones`);
+}
+
+export function getMilestoneProgress(projectId: number): Promise<number> {
+  return request.get(`/projects/${projectId}/milestones/progress`);
+}
+
+export function updateMilestone(projectId: number, milestoneId: number, data: UpdateMilestoneRequest): Promise<Milestone> {
+  return request.put(`/projects/${projectId}/milestones/${milestoneId}`, data);
+}
+
+export function toggleMilestoneCompletion(projectId: number, milestoneId: number): Promise<Milestone> {
+  return request.put(`/projects/${projectId}/milestones/${milestoneId}/toggle`);
+}
+
+export function deleteMilestone(projectId: number, milestoneId: number): Promise<void> {
+  return request.delete(`/projects/${projectId}/milestones/${milestoneId}`);
 }

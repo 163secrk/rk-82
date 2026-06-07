@@ -96,8 +96,23 @@ CREATE INDEX IF NOT EXISTS idx_project_client ON project(client_id);
 CREATE INDEX IF NOT EXISTS idx_project_freelancer ON project(freelancer_id);
 CREATE INDEX IF NOT EXISTS idx_bid_project ON bid(project_id);
 CREATE INDEX IF NOT EXISTS idx_bid_freelancer ON bid(freelancer_id);
+CREATE TABLE IF NOT EXISTS project_milestone (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  expected_date DATETIME NOT NULL,
+  actual_date DATETIME,
+  completed BOOLEAN DEFAULT FALSE,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES project(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_message_project ON message(project_id);
 CREATE INDEX IF NOT EXISTS idx_message_unread ON message(receiver_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_milestone_project ON project_milestone(project_id);
 
 INSERT OR IGNORE INTO "user" (email, password, nickname, role, balance) VALUES 
 ('client@test.com', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '测试发包方', 'CLIENT', 10000.00),

@@ -46,6 +46,8 @@ export interface Project {
   bidCount: number;
   clientReviewed?: boolean;
   freelancerReviewed?: boolean;
+  milestoneProgress?: number;
+  milestones?: Milestone[];
 }
 
 export interface Review {
@@ -103,6 +105,33 @@ export interface Payment {
   status: PaymentStatus;
   remark: string;
   createdAt: string;
+}
+
+export interface Milestone {
+  id: number;
+  projectId: number;
+  name: string;
+  description?: string;
+  expectedDate: string;
+  actualDate?: string;
+  completed: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMilestoneRequest {
+  name: string;
+  description?: string;
+  expectedDate: string;
+  sortOrder?: number;
+}
+
+export interface UpdateMilestoneRequest {
+  name: string;
+  description?: string;
+  expectedDate: string;
+  sortOrder?: number;
 }
 
 export interface Dashboard {

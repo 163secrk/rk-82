@@ -3,11 +3,13 @@ package com.freelance.platform.service;
 import com.freelance.platform.common.enums.ProjectStatus;
 import com.freelance.platform.common.enums.UserRole;
 import com.freelance.platform.dto.request.CreateProjectRequest;
+import com.freelance.platform.dto.response.MilestoneVO;
 import com.freelance.platform.dto.response.ProjectDetailVO;
 import com.freelance.platform.entity.Project;
 import com.freelance.platform.entity.User;
 import com.freelance.platform.exception.BusinessException;
 import com.freelance.platform.repository.BidRepository;
+import com.freelance.platform.repository.ProjectMilestoneRepository;
 import com.freelance.platform.repository.ProjectRepository;
 import com.freelance.platform.repository.ReviewRepository;
 import com.freelance.platform.repository.UserRepository;
@@ -20,6 +22,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +42,9 @@ public class ProjectService {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ProjectMilestoneRepository milestoneRepository;
 
     @Transactional
     public ProjectDetailVO createProject(CreateProjectRequest request, Integer clientId) {
@@ -134,6 +141,27 @@ public class ProjectService {
         } else {
             vo.setFreelancerReviewed(false);
         }
+
+        long totalMilestones = milestoneRepository.countByProjectId(project.getId());
+        if (totalMilestones > 0) {
+            long completedMilestones = milestoneRepository.countCompletedByProjectId(project.getId());
+            BigDecimal progress = BigDecimal.valueOf(completedMilestones)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(totalMilestones), 2, RoundingMode.HALF_UP);
+            vo.setMilestoneProgress(progress);
+        } else {
+            vo.setMilestoneProgress(BigDecimal.ZERO);
+        }
+
+        List<MilestoneVO> milestones = milestoneRepository.findByProjectIdOrderBySortOrderAscCreatedAtAsc(project.getId())
+                .stream()
+                .map(m -> {
+                    MilestoneVO mvo = new MilestoneVO();
+                    BeanUtils.copyProperties(m, mvo);
+                    return mvo;
+                })
+                .collect(Collectors.toList());
+        vo.setMilestones(milestones);
 
         return vo;
     }
