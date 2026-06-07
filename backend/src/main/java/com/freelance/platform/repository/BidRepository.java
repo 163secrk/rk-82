@@ -13,8 +13,6 @@ import java.util.List;
 public interface BidRepository extends JpaRepository<Bid, Integer> {
     List<Bid> findByProjectId(Integer projectId);
 
-    List<Bid> findByFreelancerId(Integer freelancerId);
-
     List<Bid> findByProjectIdAndStatus(Integer projectId, BidStatus status);
 
     boolean existsByProjectIdAndFreelancerId(Integer projectId, Integer freelancerId);

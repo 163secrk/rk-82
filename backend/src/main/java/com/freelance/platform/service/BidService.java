@@ -70,7 +70,7 @@ public class BidService {
     }
 
     public List<BidVO> getBidsByFreelancer(Integer freelancerId) {
-        List<Bid> bids = bidRepository.findByFreelancerId(freelancerId);
+        List<Bid> bids = bidRepository.findByProjectIdAndStatus(freelancerId, BidStatus.ACCEPTED);
         return bids.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
